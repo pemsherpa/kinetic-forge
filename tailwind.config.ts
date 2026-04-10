@@ -14,6 +14,7 @@ export default {
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],
         heading: ["Syne", "sans-serif"],
+        display: ["Syne", "sans-serif"],
       },
       colors: {
         bg: "var(--bg)",
@@ -22,25 +23,35 @@ export default {
         card: "var(--card)",
         border: "var(--border)",
         "border-strong": "var(--border-strong)",
+        "border-active": "var(--border-active)",
         amber: {
           DEFAULT: "var(--amber)",
           dim: "var(--amber-dim)",
-          bright: "var(--amber-bright)",
+          glow: "var(--amber-glow)",
         },
         strategist: {
           DEFAULT: "var(--strategist)",
           dim: "var(--strategist-dim)",
+          border: "var(--strategist-border)",
         },
         critic: {
           DEFAULT: "var(--critic)",
           dim: "var(--critic-dim)",
+          border: "var(--critic-border)",
         },
         executor: {
           DEFAULT: "var(--executor)",
           dim: "var(--executor-dim)",
+          border: "var(--executor-border)",
         },
-        green: "var(--green)",
-        red: "var(--red)",
+        green: {
+          DEFAULT: "var(--green)",
+          dim: "var(--green-dim)",
+        },
+        red: {
+          DEFAULT: "var(--red)",
+          dim: "var(--red-dim)",
+        },
         blue: "var(--blue)",
         text: {
           primary: "var(--text-primary)",
@@ -50,7 +61,7 @@ export default {
         /* fallback shadcn vars for internal compatibility */
         background: "var(--bg)",
         foreground: "var(--text-primary)",
-        popover: "var(--surface)",
+        popover: "var(--elevated)",
         "popover-foreground": "var(--text-primary)",
         primary: {
           DEFAULT: "var(--amber)",
@@ -66,19 +77,19 @@ export default {
         },
         accent: {
           DEFAULT: "var(--amber-dim)",
-          foreground: "var(--amber-bright)",
+          foreground: "var(--amber)",
         },
         destructive: {
           DEFAULT: "var(--red)",
           foreground: "var(--text-primary)",
         },
-        input: "var(--border)",
+        input: "var(--border-strong)",
         ring: "var(--amber)",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "6px",
+        md: "4px",
+        sm: "2px",
       },
       keyframes: {
         "accordion-down": {
@@ -89,16 +100,30 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        shimmerPurple: {
-          "0%": { boxShadow: "inset 0 0 0 0 transparent" },
-          "50%": { boxShadow: "inset 100px 0 50px -50px var(--strategist-dim)" },
-          "100%": { boxShadow: "inset 0 0 0 0 transparent" },
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.4" },
         },
+        shimmer: {
+          "0%": { opacity: "0.6" },
+          "50%": { opacity: "1" },
+          "100%": { opacity: "0.6" },
+        },
+        spinRing: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        flowEdge: {
+          to: { strokeDashoffset: "-20" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "shimmer-purple": "shimmerPurple 2s infinite ease-in-out",
+        "pulse-status": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "shimmer": "shimmer 1.2s infinite",
+        "spin-ring": "spinRing 1s linear infinite",
+        "flow-edge": "flowEdge 700ms linear infinite",
       },
     },
   },

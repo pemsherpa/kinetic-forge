@@ -1,6 +1,6 @@
 import { ConsensusResult } from '../types';
 
-export const defaultConsensus: ConsensusResult = {
+export const fallbackConsensus: ConsensusResult = {
   nodes: [
     {
       id: 'intake-1',

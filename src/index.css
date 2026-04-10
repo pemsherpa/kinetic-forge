@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400;1,500&family=Syne:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,114 +7,98 @@
 @layer base {
   :root {
     --bg: #080808;
-    --surface: #101010;
-    --elevated: #181818;
-    --card: #1E1E1E;
+    --surface: #0F0F0F;
+    --elevated: #161616;
+    --card: #1C1C1C;
     --border: rgba(255,255,255,0.07);
-    --border-strong: rgba(255,255,255,0.14);
+    --border-strong: rgba(255,255,255,0.13);
+    --border-active: rgba(245,158,11,0.5);
     
     --amber: #F59E0B;
-    --amber-dim: rgba(245,158,11,0.12);
-    --amber-bright: rgba(245,158,11,0.25);
+    --amber-dim: rgba(245,158,11,0.10);
+    --amber-glow: rgba(245,158,11,0.20);
     
     --strategist: #8B5CF6;
-    --strategist-dim: rgba(139,92,246,0.12);
+    --strategist-dim: rgba(139,92,246,0.10);
+    --strategist-border: rgba(139,92,246,0.35);
     
     --critic: #F97316;
-    --critic-dim: rgba(249,115,22,0.12);
+    --critic-dim: rgba(249,115,22,0.10);
+    --critic-border: rgba(249,115,22,0.35);
     
     --executor: #14B8A6;
-    --executor-dim: rgba(20,184,166,0.12);
+    --executor-dim: rgba(20,184,166,0.10);
+    --executor-border: rgba(20,184,166,0.35);
     
     --green: #10B981;
+    --green-dim: rgba(16,185,129,0.10);
+    
     --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.10);
+    
     --blue: #3B82F6;
     
-    --text-primary: #F0EFE8;
+    --text-primary: #EEEEE8;
     --text-secondary: #71717A;
     --text-muted: #3F3F46;
-
-    --radius: 0.25rem;
-  }
-
-  * {
-    @apply border-border;
+    
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
   }
 
   body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: var(--bg);
     color: var(--text-primary);
-    font-family: 'IBM Plex Mono', monospace;
     overflow: hidden;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', sans-serif;
   }
 }
 
-@layer utilities {
-  .thin-scrollbar::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  .thin-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .thin-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 2px;
-  }
+.panel-texture {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
-@keyframes shimmerPurple {
-  0% { box-shadow: inset 0 0 0 0 transparent; }
-  50% { box-shadow: inset 100px 0 50px -50px var(--strategist-dim); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--amber-dim);
+  border-radius: 2px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: var(--amber);
 }
 
-@keyframes shimmerOrange {
-  0% { box-shadow: inset 0 0 0 0 transparent; border-color: rgba(249,115,22,0.4); }
-  50% { box-shadow: inset 100px 0 50px -50px var(--critic-dim); border-color: rgba(249,115,22,1); }
-  100% { box-shadow: inset 0 0 0 0 transparent; border-color: rgba(249,115,22,0.4); }
+.feed-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.feed-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.feed-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 3px;
 }
 
-@keyframes pulseAmberRing {
-  0% { box-shadow: 0 0 0 0 var(--amber-bright); }
-  70% { box-shadow: 0 0 0 6px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
+/* Base input field styling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-@keyframes slideDot {
-  0% { transform: translateX(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateX(100vw); opacity: 0; }
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-.animate-shimmer-purple {
-  animation: shimmerPurple 2s infinite ease-in-out;
-}
-
-.animate-shimmer-orange {
-  animation: shimmerOrange 2s infinite ease-in-out;
-}
-
-.animate-pulse-amber-ring {
-  animation: pulseAmberRing 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
-}
-
-.animate-slide-dot {
-  animation: slideDot 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animate-blink {
-  animation: blink 1.5s infinite ease-in-out;
+.spin-ring {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--amber);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinRing 1s linear infinite;
+  display: inline-block;
 }
