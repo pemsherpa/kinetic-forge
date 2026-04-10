@@ -11,9 +11,9 @@ export function getAgentModels(store: ModelStore): AgentModels {
   
   if (!models || models.length === 0) {
     return {
-      strategist: 'meta-llama/llama-3.1-8b-instruct:free',
-      critic: 'meta-llama/llama-3.1-8b-instruct:free',
-      executor: 'meta-llama/llama-3.1-8b-instruct:free',
+      strategist: '',
+      critic: '',
+      executor: '',
     };
   }
 

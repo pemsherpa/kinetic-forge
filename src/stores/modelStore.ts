@@ -1,14 +1,5 @@
 import { create } from 'zustand';
 import { useSettingsStore } from './settingsStore';
-import { benchmarks as hardcodedBenchmarks } from '../data/benchmarks';
-
-export interface BenchmarkEntry {
-  modelId: string;
-  arenaElo: number;
-  mmlu: number;
-  contextK: number;
-  notes: string;
-}
 
 export interface RegisteredModel {
   id: string;
@@ -22,9 +13,58 @@ export interface RegisteredModel {
   headers?: Record<string, string>;
 }
 
+const inferTagsFromOllamaModel = (name: string, family?: string): string[] => {
+  const n = name.toLowerCase();
+  const f = (family ?? '').toLowerCase();
+
+  // Embedding-only models — exclude from chat
+  if (n.includes('embed') || f.includes('bert') || n.includes('nomic')) {
+    return ['embedding'];
+  }
+
+  // Multimodal vision models that can also do analysis
+  if (f.includes('qwen25vl') || f.includes('qwenvl') || n.includes('qwen2.5vl') || n.includes('qwenvl')) {
+    return ['vision', 'analysis', 'general'];
+  }
+
+  // Vision-only models (llama-vision, mllama, etc.)
+  if (
+    f.includes('mllama') ||
+    f.includes('llava') ||
+    n.includes('vision') ||
+    n.includes('llava') ||
+    n.includes('bakllava')
+  ) {
+    return ['vision', 'general'];
+  }
+
+  // Strong reasoning models
+  if (
+    f.includes('deepseek') ||
+    n.includes('deepseek-r1') ||
+    n.includes('reason') ||
+    n.includes('qwen2.5:') ||
+    f === 'qwen2'
+  ) {
+    return ['reasoning', 'general'];
+  }
+
+  // Smaller/faster models — good for execution
+  if (
+    n.includes('3b') ||
+    n.includes('1b') ||
+    n.includes('phi') ||
+    n.includes('gemma') ||
+    n.includes('mistral')
+  ) {
+    return ['efficiency', 'general'];
+  }
+
+  return ['general'];
+};
+
 interface ModelStore {
   models: RegisteredModel[];
-  benchmarks: Record<string, BenchmarkEntry>;
   isDetecting: boolean;
   autoDetect: () => Promise<void>;
   addModel: (model: Omit<RegisteredModel, 'id'> & { id?: string }) => void;
@@ -37,12 +77,13 @@ interface ModelStore {
 
 export const useModelStore = create<ModelStore>((set, get) => ({
   models: [],
-  benchmarks: {},
   isDetecting: false,
 
   autoDetect: async () => {
     set({ isDetecting: true });
     
+    // Refresh dynamic models (Ollama) while keeping user-added ones.
+    const customModels = get().models.filter(m => m.source !== 'auto-detected');
     const detectedModels: RegisteredModel[] = [];
 
     // Detect Ollama
@@ -51,53 +92,28 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       if (resp.ok) {
         const data = await resp.json();
         data.models?.forEach((m: any) => {
+          const name = String(m?.name ?? '').trim();
+          if (!name) return;
+          const tags = inferTagsFromOllamaModel(name, m?.details?.family);
+          if (tags.includes('embedding')) return;
           detectedModels.push({
-            id: `ollama-${m.name}`,
-            name: m.name,
+            id: `ollama-${name}`,
+            name,
             provider: 'Ollama',
-            tags: ['general'], // default tag, user can edit later
-            contextLength: null,
+            tags,
+            contextLength: typeof m?.context_length === 'number' ? m.context_length : null,
             costPerToken: 0,
             source: 'auto-detected'
           });
         });
       }
     } catch(e) {
-      // ignore
+      console.warn('Ollama not found or not running');
     }
 
-    // Detect OpenRouter Free Models
-    try {
-      const resp = await fetch('https://openrouter.ai/api/v1/models');
-      if (resp.ok) {
-        const data = await resp.json();
-        data.data?.forEach((m: any) => {
-          if (m.pricing && m.pricing.prompt === "0") {
-             detectedModels.push({
-               id: m.id,
-               name: m.id,
-               provider: 'OpenRouter',
-               tags: ['general'], // will map better tags later based on name heuristics if needed
-               contextLength: m.context_length,
-               costPerToken: 0,
-               source: 'auto-detected'
-             });
-          }
-        });
-      }
-    } catch(e) {
-      // ignore
-    }
-
-    set(state => {
-      // Merge detected, keeping existing
-      const newModels = [...state.models];
-      detectedModels.forEach(dm => {
-        if (!newModels.find(m => m.id === dm.id)) {
-          newModels.push(dm);
-        }
-      });
-      return { models: newModels, isDetecting: false };
+    set({ 
+      models: [...customModels, ...detectedModels], 
+      isDetecting: false 
     });
   },
 
@@ -155,23 +171,46 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     if (available.length === 0) return null;
 
     available.sort((a, b) => {
-      const eloA = hardcodedBenchmarks[a.id]?.arenaElo || 0;
-      const eloB = hardcodedBenchmarks[b.id]?.arenaElo || 0;
-      return eloB - eloA;
+      const aExact = a.tags.includes(tag) ? 1 : 0;
+      const bExact = b.tags.includes(tag) ? 1 : 0;
+      if (aExact !== bExact) return bExact - aExact;
+      return a.name.localeCompare(b.name);
     });
 
     return available[0];
   },
 
   getAgentModels: () => {
-    const locks = useSettingsStore.getState().agentModelLocks;
-    // Assuming for now locks refer to specific assigned models stored somewhere, 
-    // or if locked, we bypass dynamic selection (not fully specified where manual assignment is stored yet, 
-    // we'll assume there's a way or it just uses getBestModelForTask for now).
+    const { models } = get();
+    if (models.length === 0) {
+      return { strategist: null, critic: null, executor: null };
+    }
+
+    const sorted = [...models].sort((a, b) => a.name.localeCompare(b.name));
+    const pickDistinct = (preferredTag: string, used: Set<string>) => {
+      const preferred = sorted.find(
+        (m) => !used.has(m.id) && (m.tags.includes(preferredTag) || m.tags.includes('general'))
+      );
+      if (preferred) {
+        used.add(preferred.id);
+        return preferred;
+      }
+
+      const anyUnused = sorted.find((m) => !used.has(m.id));
+      if (anyUnused) {
+        used.add(anyUnused.id);
+        return anyUnused;
+      }
+
+      // If we have fewer than 3 models, allow reuse.
+      return sorted[0];
+    };
+
+    const used = new Set<string>();
     return {
-      strategist: get().getBestModelForTask('reasoning'),
-      critic: get().getBestModelForTask('analysis'),
-      executor: get().getBestModelForTask('efficiency')
+      strategist: pickDistinct('reasoning', used),
+      critic: pickDistinct('analysis', used),
+      executor: pickDistinct('efficiency', used)
     };
   }
 }));

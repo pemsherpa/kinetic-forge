@@ -4,6 +4,95 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Glow utilities ──────────────────────────────────────── */
+.node-glow-strategist {
+  box-shadow: 0 0 16px rgba(139,92,246,0.35), 0 0 32px rgba(139,92,246,0.15);
+}
+.node-glow-strategist-pulse {
+  animation: glowStrategist 1.5s ease-in-out infinite;
+}
+.node-glow-critic {
+  box-shadow: 0 0 16px rgba(249,115,22,0.35), 0 0 32px rgba(249,115,22,0.15);
+}
+.node-glow-critic-pulse {
+  animation: glowCritic 1.5s ease-in-out infinite;
+}
+.node-glow-executor {
+  box-shadow: 0 0 16px rgba(20,184,166,0.35), 0 0 32px rgba(20,184,166,0.15);
+}
+.node-glow-executor-pulse {
+  animation: glowExecutor 1.5s ease-in-out infinite;
+}
+.node-glow-amber-sm {
+  box-shadow: 0 0 12px rgba(245,158,11,0.18), 0 0 24px rgba(245,158,11,0.08);
+}
+
+@keyframes glowStrategist {
+  0%,100% { box-shadow: 0 0 12px rgba(139,92,246,0.25), 0 0 24px rgba(139,92,246,0.10); }
+  50%      { box-shadow: 0 0 28px rgba(139,92,246,0.55), 0 0 56px rgba(139,92,246,0.25), inset 0 0 16px rgba(139,92,246,0.06); }
+}
+@keyframes glowCritic {
+  0%,100% { box-shadow: 0 0 12px rgba(249,115,22,0.25), 0 0 24px rgba(249,115,22,0.10); }
+  50%      { box-shadow: 0 0 28px rgba(249,115,22,0.55), 0 0 56px rgba(249,115,22,0.25), inset 0 0 16px rgba(249,115,22,0.06); }
+}
+@keyframes glowExecutor {
+  0%,100% { box-shadow: 0 0 12px rgba(20,184,166,0.25), 0 0 24px rgba(20,184,166,0.10); }
+  50%      { box-shadow: 0 0 28px rgba(20,184,166,0.55), 0 0 56px rgba(20,184,166,0.25), inset 0 0 16px rgba(20,184,166,0.06); }
+}
+
+/* ── Scanline overlay ────────────────────────────────────── */
+.scanline-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  overflow: hidden;
+}
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  opacity: 0.55;
+  animation: scanDown 2s linear infinite;
+}
+.scanline-strategist::after { background: linear-gradient(90deg, transparent, var(--strategist), transparent); }
+.scanline-critic::after     { background: linear-gradient(90deg, transparent, var(--critic), transparent); }
+.scanline-executor::after   { background: linear-gradient(90deg, transparent, var(--executor), transparent); }
+
+@keyframes scanDown {
+  0%   { top: -4px;   opacity: 0; }
+  5%   { opacity: 0.55; }
+  95%  { opacity: 0.55; }
+  100% { top: 105%;   opacity: 0; }
+}
+
+/* ── Slow ping (dot indicator) ───────────────────────────── */
+.animate-ping-slow {
+  animation: pingSlow 1.8s cubic-bezier(0,0,0.2,1) infinite;
+}
+@keyframes pingSlow {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%     { transform: scale(1.6); opacity: 0.4; }
+}
+
+/* ── Global app CRT scanlines (very subtle) ──────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 3px
+  );
+}
+
 @layer base {
   :root {
     --bg: #080808;

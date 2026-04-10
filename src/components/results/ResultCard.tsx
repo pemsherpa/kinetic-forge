@@ -1,32 +1,62 @@
 import React, { useState } from 'react';
-import { ClaimInput } from '../../types';
+import { ClaimResult } from '../../stores/claimsStore';
 
 interface ResultCardProps {
-  claim: ClaimInput;
-  status: string;
-  confidence: number;
+  result: ClaimResult;
 }
 
-export function ResultCard({ claim, status, confidence }: ResultCardProps) {
+export function ResultCard({ result }: ResultCardProps) {
+  const { claim, status, confidence, estimatedPayout, reason, customerMessage, damageSeverity, fraudIndicators, debateMessages } = result;
   const [expanded, setExpanded] = useState(false);
 
+  const statusColor =
+    status === 'Approved'
+      ? 'bg-green/20 text-green border-green/50'
+      : status === 'Rejected'
+        ? 'bg-red/20 text-red border-red/50'
+        : 'bg-amber/20 text-amber border-amber/50';
+
+  const severityColor =
+    damageSeverity === 'Major'
+      ? 'text-red'
+      : damageSeverity === 'Moderate'
+        ? 'text-amber'
+        : 'text-green';
+
+  const agentColors: Record<string, string> = {
+    strategist: 'text-strategist',
+    critic: 'text-critic',
+    executor: 'text-executor',
+  };
+
   return (
-    <div className="w-full bg-card border border-border-strong rounded flex flex-col font-mono text-[11px] overflow-hidden text-text-primary">
+    <div className="w-full bg-card border border-border-strong rounded-[6px] flex flex-col font-mono text-[11px] overflow-hidden text-text-primary">
+
+      {/* Header */}
       <div className="p-3 border-b border-border-strong bg-surface">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-amber">{claim.id}</span>
-          <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase ${status === 'Approved' ? 'bg-green/20 text-green border border-green/50' : 'bg-red/20 text-red border border-red/50'}`}>
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-amber font-semibold">{claim.id}</span>
+          <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase border ${statusColor}`}>
             {status}
           </span>
         </div>
-        <div className="font-heading text-[22px] tracking-tight">
-          ₹{claim.amount.toLocaleString('en-IN')}
+
+        <div className="flex items-baseline justify-between mt-1">
+          <div className="font-heading text-[20px] tracking-tight">₹{claim.amount.toLocaleString('en-IN')}</div>
+          {estimatedPayout !== undefined && (
+            <div className="text-right">
+              <div className="text-text-muted text-[9px]">Payout</div>
+              <div className={`font-heading text-[16px] ${status === 'Approved' ? 'text-green' : 'text-text-muted'}`}>
+                ₹{estimatedPayout.toLocaleString('en-IN')}
+              </div>
+            </div>
+          )}
         </div>
-        
+
         {/* Confidence bar */}
-        <div className="w-full h-[3px] bg-surface rounded overflow-hidden mt-3 mb-1">
-          <div 
-            className={`h-full ${confidence > 90 ? 'bg-green' : confidence > 70 ? 'bg-amber' : 'bg-red'}`} 
+        <div className="w-full h-[3px] bg-surface rounded overflow-hidden mt-2 mb-1">
+          <div
+            className={`h-full transition-all ${confidence > 80 ? 'bg-green' : confidence > 60 ? 'bg-amber' : 'bg-red'}`}
             style={{ width: `${confidence}%` }}
           />
         </div>
@@ -36,31 +66,65 @@ export function ResultCard({ claim, status, confidence }: ResultCardProps) {
         </div>
       </div>
 
-      {/* Council Decision mini-section */}
-      <div 
-        className="px-3 py-2 border-b border-border-strong bg-surface cursor-pointer hover:bg-surface/80 flex items-center justify-between group"
+      {/* Meta row */}
+      <div className="px-3 py-2 border-b border-border-strong flex gap-3 flex-wrap text-[10px]">
+        <span className="text-text-secondary">Policy: <span className="text-text-primary">{claim.type}</span></span>
+        {damageSeverity && (
+          <span className="text-text-secondary">Damage: <span className={severityColor}>{damageSeverity}</span></span>
+        )}
+        <span className="text-text-secondary">Docs: <span className="text-text-primary">{claim.documentsComplete ? 'Complete' : claim.documentsPartial ? 'Partial' : 'Missing'}</span></span>
+        <span className="text-text-secondary">Past: <span className={claim.pastClaims > 3 ? 'text-red' : 'text-text-primary'}>{claim.pastClaims}</span></span>
+      </div>
+
+      {/* Fraud indicators */}
+      {fraudIndicators && fraudIndicators.length > 0 && (
+        <div className="px-3 py-2 border-b border-border-strong bg-red/5">
+          <div className="text-[9px] text-red uppercase mb-1">Flags</div>
+          {fraudIndicators.map((f, i) => (
+            <div key={i} className="text-[10px] text-red/80">⚠ {f}</div>
+          ))}
+        </div>
+      )}
+
+      {/* Reason */}
+      {reason && (
+        <div className="px-3 py-2 border-b border-border-strong">
+          <div className="text-[9px] text-amber uppercase mb-1">Decision Reason</div>
+          <div className="text-text-secondary leading-relaxed">{reason}</div>
+        </div>
+      )}
+
+      {/* Customer message */}
+      {customerMessage && (
+        <div className="px-3 py-2 border-b border-border-strong bg-surface/50">
+          <div className="text-[9px] text-amber uppercase mb-1">Customer Message</div>
+          <div className="text-text-secondary italic leading-relaxed">{customerMessage}</div>
+        </div>
+      )}
+
+      {/* Council log (expandable) */}
+      <div
+        className="px-3 py-2 cursor-pointer hover:bg-surface/80 flex items-center justify-between group"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex flex-col gap-1">
-          <div className="text-[10px] text-amber">Council Decision</div>
-          <div className="text-[9px] text-text-muted">Proposed by: Strategist · Challenged by: Critic · Finalized: 3/3 votes</div>
-        </div>
+        <div className="text-[10px] text-amber">Council Debate Log</div>
         <span className={`text-[10px] text-amber transition-transform ${expanded ? 'rotate-180' : ''}`}>↓</span>
       </div>
 
       {expanded && (
-        <div className="p-3 bg-bg flex flex-col gap-3">
-          <div className="pl-2 border-l-2 border-amber italic text-text-secondary line-clamp-2 hover:line-clamp-none transition-all">
-            "The claimant states: {claim.description}"
-          </div>
-          
-          {/* Mock log for now */}
-          <div className="bg-surface border border-border p-2 rounded text-[10px] flex flex-col gap-1">
-            <div className="text-strategist">{">"} [STRATEGIST] Processing logic clear.</div>
-            <div className="text-critic">{">"} [CRITIC] Verified against known fraud patterns.</div>
-            <div className="text-executor">{">"} [EXECUTOR] Pipeline executed in 1.4s.</div>
-            <div className="text-amber mt-1">Consensus: Validated and executed.</div>
-          </div>
+        <div className="px-3 pb-3 flex flex-col gap-1 bg-bg max-h-[200px] overflow-y-auto custom-scrollbar">
+          {debateMessages && debateMessages.length > 0 ? (
+            debateMessages.map((msg) => (
+              <div key={msg.id} className="flex gap-2 leading-tight">
+                <span className={`${agentColors[msg.agent] ?? 'text-text-secondary'} shrink-0 text-[10px]`}>
+                  [R{msg.round}][{msg.agent.toUpperCase()}]:
+                </span>
+                <span className="text-text-secondary text-[10px]">{msg.text}</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-text-muted italic text-[10px]">No debate log available.</div>
+          )}
         </div>
       )}
     </div>

@@ -152,7 +152,7 @@ export function SettingsDrawer({ onClose }: { onClose: () => void }) {
 
       {/* About */}
       <div className="mt-auto flex flex-col gap-1 border-t-[0.5px] border-border-strong pt-4">
-        <span className="font-mono text-[11px] text-amber">ClaimMind v3.0</span>
+        <span className="font-mono text-[11px] text-amber">Zathura v3.0</span>
         <span className="font-mono text-[10px] text-text-secondary opacity-70">
           Du et al. (ICML 2024) — arXiv:2305.14325<br/>
           Zhou & Chen (2025) — A-HMAD

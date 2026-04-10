@@ -45,20 +45,20 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     
     // openrouterKey should be stored separately as per spec
     if (dataToSave.openrouterKey) {
-      localStorage.setItem('claimmind_openrouter_key', dataToSave.openrouterKey);
+      localStorage.setItem('zathura_openrouter_key', dataToSave.openrouterKey);
     } else {
-      localStorage.removeItem('claimmind_openrouter_key');
+      localStorage.removeItem('zathura_openrouter_key');
     }
     
     // Rest goes to settings
     const { openrouterKey, ...settings } = dataToSave;
-    localStorage.setItem('claimmind_settings', JSON.stringify(settings));
+    localStorage.setItem('zathura_settings', JSON.stringify(settings));
   },
 
   hydrate: () => {
     try {
-      const storedKey = localStorage.getItem('claimmind_openrouter_key') || '';
-      const storedSettings = localStorage.getItem('claimmind_settings');
+      const storedKey = localStorage.getItem('zathura_openrouter_key') || '';
+      const storedSettings = localStorage.getItem('zathura_settings');
       let parsed = {};
       if (storedSettings) {
         parsed = JSON.parse(storedSettings);

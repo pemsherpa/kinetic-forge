@@ -34,11 +34,24 @@ export interface ConsensusNode {
   systemPromptHint: string;
 }
 
+export interface ClaimDecision {
+  status: 'Approved' | 'Rejected' | 'Pending';
+  estimatedPayout: number;
+  confidenceScore: number;
+  reason: string;
+  customerMessage: string;
+  damageSeverity: 'Minor' | 'Moderate' | 'Major';
+  payoutPercentage: number;
+  fraudIndicators: string[];
+  coverageValid: boolean;
+}
+
 export interface ConsensusResult {
   nodes: ConsensusNode[];
   rationale: string;
   estimatedSteps: number;
   parallelGroups: string[];
+  claimDecision?: ClaimDecision;
 }
 
 export interface ModelConfig {

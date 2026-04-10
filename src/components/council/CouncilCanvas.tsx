@@ -1,5 +1,14 @@
-import React, { useMemo, useEffect, useState } from 'react';
-import { ReactFlow, Background, Node, Edge, ConnectionMode, useNodesState, useEdgesState } from '@xyflow/react';
+import React, { useEffect } from 'react';
+import {
+  ReactFlow,
+  Node,
+  Edge,
+  ConnectionMode,
+  useNodesState,
+  useEdgesState,
+  Controls,
+  MiniMap,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { StrategistNode } from './StrategistNode';
@@ -8,6 +17,7 @@ import { ExecutorNode } from './ExecutorNode';
 import { DebateFeedNode } from './DebateFeedNode';
 import { ConsensusNode } from './ConsensusNode';
 import { CouncilEdge } from './CouncilEdge';
+import { StarfieldCanvas } from './StarfieldCanvas';
 
 import { useCouncilStore } from '../../stores/councilStore';
 
@@ -23,36 +33,39 @@ const edgeTypes = {
   council: CouncilEdge,
 };
 
-const INITIAL_NODES: Node[] = [
-  {
-    id: 'strategist',
-    type: 'strategist',
-    position: { x: window.innerWidth / 2 - 400, y: 50 },
-    data: {},
-    draggable: false,
-  },
-  {
-    id: 'critic',
-    type: 'critic',
-    position: { x: window.innerWidth / 2 + 100, y: 50 },
-    data: {},
-    draggable: false,
-  },
-  {
-    id: 'debate',
-    type: 'debateFeed',
-    position: { x: window.innerWidth / 2 - 150, y: 150 },
-    data: {},
-    draggable: false,
-  },
-  {
-    id: 'executor',
-    type: 'executor',
-    position: { x: window.innerWidth / 2 - 400, y: 250 },
-    data: {},
-    draggable: false,
-  }
-];
+const W = () => window.innerWidth - 300;
+const H = () => window.innerHeight - 120;
+
+function makeInitialNodes(): Node[] {
+  const w = W();
+  const h = H();
+  return [
+    {
+      id: 'strategist',
+      type: 'strategist',
+      position: { x: w * 0.08, y: h * 0.05 },
+      data: {},
+    },
+    {
+      id: 'critic',
+      type: 'critic',
+      position: { x: w * 0.62, y: h * 0.05 },
+      data: {},
+    },
+    {
+      id: 'debate',
+      type: 'debateFeed',
+      position: { x: w * 0.34, y: h * 0.28 },
+      data: {},
+    },
+    {
+      id: 'executor',
+      type: 'executor',
+      position: { x: w * 0.08, y: h * 0.52 },
+      data: {},
+    },
+  ];
+}
 
 const INITIAL_EDGES: Edge[] = [
   { id: 'e-strat-debate', source: 'strategist', target: 'debate', type: 'council', data: { agent: 'strategist' } },
@@ -61,69 +74,82 @@ const INITIAL_EDGES: Edge[] = [
 ];
 
 export function CouncilCanvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
+  const [nodes, setNodes, onNodesChange] = useNodesState(makeInitialNodes());
   const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES);
   const { consensusResult } = useCouncilStore();
 
   useEffect(() => {
-    // Add consensus node dynamically when consensus is reached
-    if (consensusResult && !nodes.find(n => n.id === 'consensus')) {
-      setNodes(nds => [
+    if (consensusResult && !nodes.find((n) => n.id === 'consensus')) {
+      const w = W();
+      const h = H();
+      setNodes((nds) => [
         ...nds,
         {
           id: 'consensus',
           type: 'consensus',
-          position: { x: window.innerWidth / 2 - 150, y: 400 },
+          position: { x: w * 0.34, y: h * 0.62 },
           data: { result: consensusResult },
-          draggable: false,
-        }
+        },
       ]);
-      setEdges(eds => [
+      setEdges((eds) => [
         ...eds,
-        { id: 'e-debate-cons', source: 'debate', target: 'consensus', type: 'council', data: { agent: 'consensus' } }
-      ])
-    } else if (!consensusResult && nodes.find(n => n.id === 'consensus')) {
-      // Clean up if reset
-      setNodes(INITIAL_NODES);
+        { id: 'e-debate-cons', source: 'debate', target: 'consensus', type: 'council', data: { agent: 'consensus' } },
+      ]);
+    } else if (!consensusResult && nodes.find((n) => n.id === 'consensus')) {
+      setNodes(makeInitialNodes());
       setEdges(INITIAL_EDGES);
     }
   }, [consensusResult, setNodes, setEdges, nodes]);
 
-  // Adjust positions on resize
-  useEffect(() => {
-    const handleResize = () => {
-      setNodes(nds => nds.map(n => {
-        if (n.id === 'strategist') return { ...n, position: { x: window.innerWidth / 2 - 400, y: 50 } };
-        if (n.id === 'critic') return { ...n, position: { x: window.innerWidth / 2 + 100, y: 50 } };
-        if (n.id === 'debate') return { ...n, position: { x: window.innerWidth / 2 - 150, y: 150 } };
-        if (n.id === 'executor') return { ...n, position: { x: window.innerWidth / 2 - 400, y: 250 } };
-        if (n.id === 'consensus') return { ...n, position: { x: window.innerWidth / 2 - 150, y: 380 } };
-        return n;
-      }));
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [setNodes]);
-
   return (
-    <div className="w-full h-full relative">
-      {/* Toolbar could be placed here: <CouncilToolbar /> */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        connectionMode={ConnectionMode.Loose}
-        proOptions={{ hideAttribution: true }}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.5}
-        maxZoom={1.5}
-      >
-        <Background color="rgba(255,255,255,0.035)" gap={20} size={1} />
-      </ReactFlow>
+    <div className="w-full h-full relative overflow-hidden">
+      {/* Animated starfield background */}
+      <StarfieldCanvas />
+
+      {/* Subtle vignette overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none z-[1]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(8,8,8,0.55) 100%)',
+        }}
+      />
+
+      {/* ReactFlow */}
+      <div className="absolute inset-0 z-[2]">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          connectionMode={ConnectionMode.Loose}
+          proOptions={{ hideAttribution: true }}
+          fitView
+          fitViewOptions={{ padding: 0.18, maxZoom: 1 }}
+          minZoom={0.35}
+          maxZoom={1.8}
+          style={{ background: 'transparent' }}
+          deleteKeyCode={null}
+        >
+          <Controls
+            className="!bottom-4 !left-4 !bg-elevated !border !border-border-strong !rounded-[6px] !shadow-none"
+            showInteractive={false}
+          />
+          <MiniMap
+            className="!bottom-4 !right-4 !bg-elevated !border !border-border-strong !rounded-[6px]"
+            nodeColor={(n) => {
+              if (n.type === 'strategist') return 'var(--strategist)';
+              if (n.type === 'critic') return 'var(--critic)';
+              if (n.type === 'executor') return 'var(--executor)';
+              if (n.type === 'consensus') return 'var(--amber)';
+              return 'var(--border-strong)';
+            }}
+            maskColor="rgba(8,8,8,0.7)"
+          />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

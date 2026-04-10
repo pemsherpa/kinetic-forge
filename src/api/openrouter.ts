@@ -14,7 +14,7 @@ export async function callOpenRouter(
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'http://localhost:5173', 
-      'X-Title': 'ClaimMind-v3'
+      'X-Title': 'Zathura-v3'
     },
     body: JSON.stringify({
       model: modelId,

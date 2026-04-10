@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useModelStore } from '../../stores/modelStore';
 
 export function ModelRegistry() {
   const { models, isDetecting, autoDetect } = useModelStore();
-  const [showAdd, setShowAdd] = useState(false);
-  const [showBenchmarks, setShowBenchmarks] = useState(false);
 
   useEffect(() => {
     // on component mount auto-detect
@@ -51,32 +49,12 @@ export function ModelRegistry() {
          )}
       </div>
 
-      <button 
-        onClick={() => setShowAdd(true)}
-        className="w-full h-[32px] border-[0.5px] border-dashed border-amber bg-transparent text-amber font-mono text-[12px] rounded-[4px] flex items-center justify-center transition-colors hover:bg-amber-dim/50"
+      <button
+        onClick={() => autoDetect()}
+        className="w-full h-[28px] border-[0.5px] border-border-strong bg-transparent text-text-secondary font-mono text-[11px] rounded-[4px] flex items-center justify-center gap-1.5 transition-colors hover:text-amber hover:border-amber"
       >
-        + Add Model
+        {isDetecting ? <span className="animate-pulse">Scanning...</span> : '↻ Refresh'}
       </button>
-
-      <div 
-        className="mt-2 text-[10px] text-amber cursor-pointer hover:text-amber-bright text-center"
-        onClick={() => setShowBenchmarks(!showBenchmarks)}
-      >
-        BENCHMARKS {showBenchmarks ? '↑' : '↓'}
-      </div>
-
-      {/* Benchmarks modal/panel placeholder (detailed in full app) */}
-
-      {/* Add dialog placeholder (in app we trigger real AddModelDialog) */}
-      {showAdd && (
-         <div className="fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm flex items-center justify-center p-4">
-           {/* Replace with full AddModelDialog from spec later */}
-           <div className="bg-elevated w-[480px] border-[0.5px] border-border-strong rounded-[8px] p-[24px]">
-             <h2 className="font-heading text-[16px] font-semibold text-text-primary">Add model</h2>
-             <button className="text-amber mt-4" onClick={() => setShowAdd(false)}>Close</button>
-           </div>
-         </div>
-      )}
     </div>
   );
 }

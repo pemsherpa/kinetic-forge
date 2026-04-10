@@ -115,15 +115,25 @@ export default {
         },
         flowEdge: {
           to: { strokeDashoffset: "-20" },
-        }
+        },
+        fadeInUp: {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInLeft: {
+          from: { opacity: "0", transform: "translateX(-16px)" },
+          to:   { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-status": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "shimmer": "shimmer 1.2s infinite",
-        "spin-ring": "spinRing 1s linear infinite",
-        "flow-edge": "flowEdge 700ms linear infinite",
+        "accordion-up":   "accordion-up 0.2s ease-out",
+        "pulse-status":   "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
+        "shimmer":        "shimmer 1.2s infinite",
+        "spin-ring":      "spinRing 1s linear infinite",
+        "flow-edge":      "flowEdge 700ms linear infinite",
+        "fade-in-up":     "fadeInUp 0.35s ease both",
+        "slide-in-left":  "slideInLeft 0.3s ease both",
       },
     },
   },

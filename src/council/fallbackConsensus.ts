@@ -1,4 +1,4 @@
-import { ConsensusResult } from '../types';
+import { ConsensusResult, ClaimDecision } from '../types';
 
 export const fallbackConsensus: ConsensusResult = {
   nodes: [
@@ -60,5 +60,16 @@ export const fallbackConsensus: ConsensusResult = {
   ],
   rationale: 'Fallback pipeline built due to API failure or rate limit.',
   estimatedSteps: 5,
-  parallelGroups: ['group-1']
+  parallelGroups: ['group-1'],
+  claimDecision: {
+    status: 'Pending',
+    estimatedPayout: 0,
+    confidenceScore: 0.5,
+    reason: 'Council could not reach a decision. Manual review required.',
+    customerMessage: 'Dear customer, your claim is under manual review. We will contact you within 5 business days.',
+    damageSeverity: 'Minor',
+    payoutPercentage: 0,
+    fraudIndicators: [],
+    coverageValid: true,
+  } as ClaimDecision,
 };

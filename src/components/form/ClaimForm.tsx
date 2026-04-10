@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useClaimsStore } from '../../stores/claimsStore';
+import { useCouncilStore } from '../../stores/councilStore';
 import { exampleClaims } from '../../data/exampleClaims';
 
 export function ClaimForm() {
@@ -16,7 +17,7 @@ export function ClaimForm() {
     useCouncilStore.getState().startDebate(claim);
   };
 
-  const isDebating = false; // derive from store if needed
+  const isDebating = useCouncilStore((s) => s.isDebating);
 
   return (
     <div className="flex flex-col gap-3 mt-4">
@@ -149,7 +150,32 @@ export function ClaimForm() {
         </div>
       </div>
 
-      <button 
+      {/* Image URL */}
+      <div className="flex flex-col mb-3">
+        <label className="font-display text-[10px] text-text-secondary uppercase tracking-[0.1em] mb-1">Damage Image URL <span className="text-executor normal-case">(optional)</span></label>
+        <input
+          type="url"
+          value={claim.imageUrl ?? ''}
+          onChange={(e) => setClaim({ ...claim, imageUrl: e.target.value || undefined })}
+          placeholder="https://..."
+          className="bg-transparent border-[0.5px] border-border-strong rounded-[4px] font-mono text-[11px] text-text-primary px-[10px] py-[7px] w-full transition-colors focus:border-amber focus:shadow-[0_0_0_2px_var(--amber-dim)] outline-none"
+        />
+        {claim.imageUrl && (
+          <div className="mt-2 relative group">
+            <img
+              src={claim.imageUrl}
+              alt="Damage preview"
+              className="w-full h-[100px] object-cover rounded-[4px] border-[0.5px] border-executor/40"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+            <div className="absolute inset-0 bg-executor/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-[4px] flex items-center justify-center">
+              <span className="text-executor text-[10px] font-mono">Vision AI will analyze this</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button
         disabled={isDebating}
         onClick={handleSubmit} 
         className="mt-4 w-full h-[40px] bg-amber text-[#080808] font-display font-semibold text-[13px] rounded-[5px] border-none cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 relative flex items-center justify-center gap-2"
@@ -157,10 +183,10 @@ export function ClaimForm() {
         {isDebating ? (
           <>
             <div className="spin-ring" />
-            <span>Convening council...</span>
+            <span>Council in session...</span>
           </>
         ) : (
-          <span>Convening council...</span>
+          <span>Convene Council →</span>
         )}
       </button>
 
