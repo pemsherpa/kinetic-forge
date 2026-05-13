@@ -22,8 +22,29 @@ const inferTagsFromOllamaModel = (name: string, family?: string): string[] => {
     return ['embedding'];
   }
 
+  // Document / OCR-friendly multimodal models
+  if (
+    n.includes('granite-doc') ||
+    n.includes('docling') ||
+    n.includes('chandra') ||
+    n.includes('olmocr')
+  ) {
+    return ['vision', 'analysis', 'general'];
+  }
+
   // Multimodal vision models that can also do analysis
-  if (f.includes('qwen25vl') || f.includes('qwenvl') || n.includes('qwen2.5vl') || n.includes('qwenvl')) {
+  if (
+    f.includes('qwen25vl') ||
+    f.includes('qwenvl') ||
+    f.includes('qwen3vl') ||
+    n.includes('qwen2.5vl') ||
+    n.includes('qwen2.5-vl') ||
+    n.includes('qwen3-vl') ||
+    n.includes('qwenvl') ||
+    n.includes('moondream') ||
+    n.includes('minicpm-v') ||
+    n.includes('minicpm-v:')
+  ) {
     return ['vision', 'analysis', 'general'];
   }
 
@@ -33,7 +54,11 @@ const inferTagsFromOllamaModel = (name: string, family?: string): string[] => {
     f.includes('llava') ||
     n.includes('vision') ||
     n.includes('llava') ||
-    n.includes('bakllava')
+    n.includes('bakllava') ||
+    n.includes('vl:') ||
+    n.includes('-vl:') ||
+    n.includes('internvl') ||
+    n.includes('pixtral')
   ) {
     return ['vision', 'general'];
   }

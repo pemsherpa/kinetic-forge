@@ -150,16 +150,44 @@ export function ClaimForm() {
         </div>
       </div>
 
-      {/* Image URL */}
+      {/* Image URL or upload */}
       <div className="flex flex-col mb-3">
-        <label className="font-display text-[10px] text-text-secondary uppercase tracking-[0.1em] mb-1">Damage Image URL <span className="text-executor normal-case">(optional)</span></label>
+        <label className="font-display text-[10px] text-text-secondary uppercase tracking-[0.1em] mb-1">
+          Damage image <span className="text-executor normal-case">(URL or upload)</span>
+        </label>
         <input
           type="url"
-          value={claim.imageUrl ?? ''}
-          onChange={(e) => setClaim({ ...claim, imageUrl: e.target.value || undefined })}
-          placeholder="https://..."
+          value={claim.imageUrl?.startsWith('data:') ? '' : (claim.imageUrl ?? '')}
+          onChange={(e) => {
+            const v = e.target.value.trim();
+            setClaim({ ...claim, imageUrl: v || undefined });
+          }}
+          placeholder="https://... (same-origin or CORS-enabled)"
           className="bg-transparent border-[0.5px] border-border-strong rounded-[4px] font-mono text-[11px] text-text-primary px-[10px] py-[7px] w-full transition-colors focus:border-amber focus:shadow-[0_0_0_2px_var(--amber-dim)] outline-none"
         />
+        <label className="mt-2 font-mono text-[10px] text-text-muted cursor-pointer hover:text-amber transition-colors">
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                const dataUrl = reader.result as string;
+                setClaim({ ...claim, imageUrl: dataUrl });
+              };
+              reader.readAsDataURL(f);
+              e.target.value = '';
+            }}
+          />
+          <span className="underline decoration-dotted underline-offset-2">Upload image file</span>
+          <span className="text-text-muted normal-case"> — avoids CORS; best for OCR</span>
+        </label>
+        {claim.imageUrl?.startsWith('data:') && (
+          <p className="text-[10px] text-text-muted font-mono mt-1">Using uploaded image — paste a URL above to replace.</p>
+        )}
         {claim.imageUrl && (
           <div className="mt-2 relative group">
             <img
@@ -169,8 +197,15 @@ export function ClaimForm() {
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
             <div className="absolute inset-0 bg-executor/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-[4px] flex items-center justify-center">
-              <span className="text-executor text-[10px] font-mono">Vision AI will analyze this</span>
+              <span className="text-executor text-[10px] font-mono">Vision + OCR analyze this</span>
             </div>
+            <button
+              type="button"
+              className="absolute top-1 right-1 text-[9px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100"
+              onClick={() => setClaim({ ...claim, imageUrl: undefined })}
+            >
+              Clear
+            </button>
           </div>
         )}
       </div>

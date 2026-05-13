@@ -27,15 +27,24 @@ export const CRITIC_ROUND2 = `The Strategist just proposed a pipeline. Identify 
 
 export const STRATEGIST_ROUND2 = `The Critic just challenged your proposal with a specific objection. Address it directly. Update your pipeline if the objection is valid. 50 words max. Start with "RESPONSE:" then "FINAL PIPELINE:" as a brief numbered list.`;
 
-export const DAMAGE_ASSESSMENT_PROMPT = `You are a vehicle damage assessment AI. Analyze the image provided.
+export const DAMAGE_ASSESSMENT_PROMPT = `You are a vehicle damage assessment and OCR specialist. Analyze the image and every readable string in it.
 
-Output format:
-SEVERITY: [Minor / Moderate / Major]
-VISIBLE_DAMAGE: [brief description of damage seen in image]
-CONSISTENCY: [consistent with description / inconsistent with description / partially consistent]
-CONCERN: [any specific concern or mismatch noted]`;
+Rules:
+- Transcribe text exactly as it appears (license plates, stickers, shop signs, documents, watermarks, dashboard warnings, tire sidewall text). If unreadable, say UNREADABLE instead of guessing.
+- Describe physical damage separately from text; do not infer damage from text alone.
+- If the image is not a vehicle (e.g. random stock photo), say so honestly.
+
+Output format (use these exact headings):
+SEVERITY: [Minor / Moderate / Major / Not a vehicle scene]
+VISIBLE_DAMAGE: [what you see in the image — dents, cracks, fire, intact paint, etc.]
+OCR_TEXT: [bulleted list of all legible text snippets, or "none visible"]
+PLATE_OR_ID: [plate number or ID if visible, else "not visible"]
+CONSISTENCY: [consistent with description / inconsistent with description / partially consistent — explain in one sentence]
+CONCERN: [mismatch between description and image, wrong vehicle type, or fraud-relevant detail]`;
 
 export const SYNTHESIS_PROMPT = `You are a claims processing synthesis agent. Based on the debate transcript and claim context below, output ONLY a valid JSON object — no markdown fences, no explanation text, no preamble.
+
+Ground your decision in the claim fields (policy type, amount, documents, past claims) and in any [VISION ASSESSMENT] / OCR lines in the transcript. If the vision block says the image does not match the description (e.g. intact car vs "total loss"), treat that as a strong fraud signal and lower confidence or reject as appropriate.
 
 The JSON must match this exact structure:
 {
